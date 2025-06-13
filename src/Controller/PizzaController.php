@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PizzaService;
+use App\Models\ErrorDTO;
 
 #[Route('/pizza')]
 class PizzaController extends AbstractController
@@ -20,8 +21,18 @@ class PizzaController extends AbstractController
     {
         $name = $request->query->get('name');
         $ingredients = $request->query->get('ingredients');
-        $ingredientsArray = null;
 
+        if ($name !== null && !is_string($name)) {
+            $errorDTO = new ErrorDTO(400, 'Parameter "name" must be a string.');
+            return $this->json($errorDTO, 400);
+        }
+
+        if ($ingredients !== null && !is_string($ingredients)) {
+            $errorDTO = new ErrorDTO(400, 'Parameter "ingredients" must be a string.');
+            return $this->json($errorDTO, 400);
+        }
+
+        $ingredientsArray = null;
         if ($ingredients !== null) {
             $ingredientsArray = array_filter(array_map('trim', explode(',', $ingredients)));
         }

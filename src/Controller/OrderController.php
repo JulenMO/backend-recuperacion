@@ -15,6 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use App\Service\OrderService;
+use App\Models\ErrorDTO;
 
 #[Route('/order')]
 class OrderController extends AbstractController
@@ -26,27 +27,44 @@ class OrderController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         if ($data === null) {
-            return $this->json(['code' => 400, 'description' => 'Invalid JSON'], 400);
+            $errorDTO = new ErrorDTO(400, 'Invalid JSON');
+            return $this->json($errorDTO, 400);
         }
 
         try {
+            if (
+                empty($data['payment']['payment_type']) ||
+                empty($data['payment']['number']) ||
+                empty($data['delivery_time']) ||
+                empty($data['delivery_address']) ||
+                !isset($data['pizzas_order']) || !is_array($data['pizzas_order']) || count($data['pizzas_order']) === 0
+            ) {
+                $errorDTO = new ErrorDTO(400, 'Missing or invalid fields in request body.');
+                return $this->json($errorDTO, 400);
+            }
+
             $paymentDTO = new PaymentDTO(
-                $data['payment']['payment_type'] ?? '',
-                $data['payment']['number'] ?? ''
+                $data['payment']['payment_type'],
+                $data['payment']['number']
             );
 
             $pizzasOrder = [];
-            foreach ($data['pizzas_order'] ?? [] as $po) {
+            foreach ($data['pizzas_order'] as $po) {
+                if (empty($po['pizza_id']) || empty($po['quantity']) || !is_int($po['pizza_id']) || !is_int($po['quantity']) || $po['quantity'] <= 0) {
+                    $errorDTO = new ErrorDTO(400, 'Each pizza order must include valid pizza_id (int) and quantity (int > 0).');
+                    return $this->json($errorDTO, 400);
+                }
+
                 $pizzasOrder[] = new PizzaOrderInputDTO(
-                    $po['pizza_id'] ?? 0,
-                    $po['quantity'] ?? 0
+                    $po['pizza_id'],
+                    $po['quantity']
                 );
             }
 
             $orderInputDTO = new OrderInputDTO(
                 $pizzasOrder,
-                $data['delivery_time'] ?? '',
-                $data['delivery_address'] ?? '',
+                $data['delivery_time'],
+                $data['delivery_address'],
                 $paymentDTO
             );
 
@@ -54,7 +72,8 @@ class OrderController extends AbstractController
 
             return $this->json($orderOutput);
         } catch (\Throwable $e) {
-            return $this->json(['code' => 500, 'description' => 'Server error: ' . $e->getMessage()], 500);
+            $errorDTO = new ErrorDTO(500, 'Server error: ' . $e->getMessage());
+            return $this->json($errorDTO, 500);
         }
     }
 }
