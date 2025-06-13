@@ -54,4 +54,8 @@ class PizzaService
 
         return $pizzaDTOs;
     }
+    public function findPizzaById(int $id): ?Pizza
+    {
+        return $this->em->getRepository(Pizza::class)->find($id);
+    }
 }
