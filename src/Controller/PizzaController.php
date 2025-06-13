@@ -2,14 +2,12 @@
 
 namespace App\Controller;
 
-use App\Models\PizzaDTO;
-use App\Models\PizzaIngredientDTO;
+use App\Models\ErrorDTO;
+use App\Service\PizzaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\PizzaService;
-use App\Models\ErrorDTO;
 
 #[Route('/pizza')]
 class PizzaController extends AbstractController
@@ -35,21 +33,12 @@ class PizzaController extends AbstractController
         $ingredientsArray = null;
         if ($ingredients !== null) {
             $ingredientsArray = array_filter(array_map('trim', explode(',', $ingredients)));
+            if (count($ingredientsArray) === 0) {
+                $ingredientsArray = null;
+            }
         }
 
-        $pizzas = $this->pizzaService->getPizzas($name, $ingredientsArray);
-
-        $pizzaDTOs = array_map(function ($pizza) {
-            $ingredientsDTO = array_map(fn($ingredient) => new PizzaIngredientDTO($ingredient), $pizza['ingredients']);
-            return new PizzaDTO(
-                $pizza['id'],
-                $pizza['title'],
-                $pizza['image'],
-                $pizza['price'],
-                $pizza['ok_celiacs'],
-                $ingredientsDTO
-            );
-        }, $pizzas);
+        $pizzaDTOs = $this->pizzaService->getPizzas($name, $ingredientsArray);
 
         return $this->json($pizzaDTOs);
     }
