@@ -16,7 +16,6 @@ class OrderInputDTO
 
     #[SerializedName('delivery_time')]
     #[Assert\NotBlank]
-    #[Assert\DateTime(format: 'Y-m-d H:i:s')]
     public string $deliveryTime;
 
     #[SerializedName('delivery_address')]

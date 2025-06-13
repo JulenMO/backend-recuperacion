@@ -25,9 +25,9 @@ class OrderService
     {
         $order = new Order();
 
-        $deliveryTime = \DateTime::createFromFormat('H:i:s', $orderInputDTO->deliveryTime);
+        $deliveryTime = \DateTime::createFromFormat('H:i', $orderInputDTO->deliveryTime);
         if (!$deliveryTime) {
-            throw new \InvalidArgumentException('Invalid delivery time format. Expected H:i:s');
+            throw new \InvalidArgumentException('Invalid delivery time format. Expected H:i');
         }
         $order->setDeliveryTime($deliveryTime);
         $order->setDeliveryAddress($orderInputDTO->deliveryAddress);
