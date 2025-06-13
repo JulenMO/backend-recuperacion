@@ -51,14 +51,21 @@ class OrderService
         $pizzaOrderOutputDTOs = [];
         foreach ($order->getPizzaOrders() as $pizzaOrder) {
             $pizza = $pizzaOrder->getPizza();
+
+            $ingredientNames = [];
+            foreach ($pizza->getIngredients() as $ingredient) {
+                $ingredientNames[] = $ingredient->getName();
+            }
+
             $pizzaDTO = new PizzaDTO(
                 $pizza->getId(),
                 $pizza->getTitle(),
                 $pizza->getImage(),
                 $pizza->getPrice(),
                 $pizza->isOkCeliacs(),
-                [] // We can omit ingredients here or fetch if needed
+                $ingredientNames
             );
+
             $pizzaOrderOutputDTOs[] = new PizzaOrderOutputDTO(
                 $pizzaOrder->getQuantity(),
                 $pizzaDTO
