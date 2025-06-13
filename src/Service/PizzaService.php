@@ -17,7 +17,7 @@ class PizzaService
         $this->em = $em;
     }
 
-    public function getAllPizzas(?string $nameFilter = null, ?string $ingredientFilter = null): array
+    public function getPizzas(?string $nameFilter = null, ?string $ingredientFilter = null): array
     {
         $qb = $this->em->createQueryBuilder()
             ->select('p', 'i')
